@@ -1,7 +1,6 @@
 # Memory Palace — Refined V2
 
-A local-first Windows desktop app for turning study material into walkable 3D memory palaces. Built for **arnavs8**, evolving the idea behind [the hackathon MVP](https://github.com/arnavs8/Memory-Palace-hackathon-1.0).
-
+A local-first Windows desktop app for turning study material into walkable 3D memory palaces.
 ![Memory Palace](public/previews/house.jpg)
 
 ## Install
