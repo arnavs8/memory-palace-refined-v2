@@ -1,0 +1,132 @@
+[
+  {
+    "id": "wooden_table_02",
+    "type": "model",
+    "path": "assets/models/wooden_table_02/model.gltf",
+    "source": "https://polyhaven.com/a/wooden_table_02",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "ArmChair_01",
+    "type": "model",
+    "path": "assets/models/ArmChair_01/model.gltf",
+    "source": "https://polyhaven.com/a/ArmChair_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "Sofa_01",
+    "type": "model",
+    "path": "assets/models/Sofa_01/model.gltf",
+    "source": "https://polyhaven.com/a/Sofa_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "CoffeeTable_01",
+    "type": "model",
+    "path": "assets/models/CoffeeTable_01/model.gltf",
+    "source": "https://polyhaven.com/a/CoffeeTable_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "ClassicConsole_01",
+    "type": "model",
+    "path": "assets/models/ClassicConsole_01/model.gltf",
+    "source": "https://polyhaven.com/a/ClassicConsole_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "ClassicNightstand_01",
+    "type": "model",
+    "path": "assets/models/ClassicNightstand_01/model.gltf",
+    "source": "https://polyhaven.com/a/ClassicNightstand_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "Rockingchair_01",
+    "type": "model",
+    "path": "assets/models/Rockingchair_01/model.gltf",
+    "source": "https://polyhaven.com/a/Rockingchair_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "SchoolDesk_01",
+    "type": "model",
+    "path": "assets/models/SchoolDesk_01/model.gltf",
+    "source": "https://polyhaven.com/a/SchoolDesk_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "SchoolChair_01",
+    "type": "model",
+    "path": "assets/models/SchoolChair_01/model.gltf",
+    "source": "https://polyhaven.com/a/SchoolChair_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "Barrel_01",
+    "type": "model",
+    "path": "assets/models/Barrel_01/model.gltf",
+    "source": "https://polyhaven.com/a/Barrel_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "Lantern_01",
+    "type": "model",
+    "path": "assets/models/Lantern_01/model.gltf",
+    "source": "https://polyhaven.com/a/Lantern_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "Ukulele_01",
+    "type": "model",
+    "path": "assets/models/Ukulele_01/model.gltf",
+    "source": "https://polyhaven.com/a/Ukulele_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "Camera_01",
+    "type": "model",
+    "path": "assets/models/Camera_01/model.gltf",
+    "source": "https://polyhaven.com/a/Camera_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "Chandelier_01",
+    "type": "model",
+    "path": "assets/models/Chandelier_01/model.gltf",
+    "source": "https://polyhaven.com/a/Chandelier_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "Ottoman_01",
+    "type": "model",
+    "path": "assets/models/Ottoman_01/model.gltf",
+    "source": "https://polyhaven.com/a/Ottoman_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "Shelf_01",
+    "type": "model",
+    "path": "assets/models/Shelf_01/model.gltf",
+    "source": "https://polyhaven.com/a/Shelf_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "herringbone_parquet",
+    "type": "texture",
+    "source": "https://polyhaven.com/a/herringbone_parquet",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "brick_wall_001",
+    "type": "texture",
+    "source": "https://polyhaven.com/a/brick_wall_001",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "concrete_floor_02",
+    "type": "texture",
+    "source": "https://polyhaven.com/a/concrete_floor_02",
+    "license": "CC0-1.0"
+  }
+]

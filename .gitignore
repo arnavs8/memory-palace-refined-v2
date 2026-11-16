@@ -1,0 +1,10 @@
+node_modules/
+dist/
+release/
+.tools/
+original-mvp/
+test-results/
+playwright-report/
+*.log
+.env*
+!.env.example
