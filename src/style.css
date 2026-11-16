@@ -1,4 +1,77 @@
 @import url("./fonts.css");
+.ai-import,
+.analysis-summary {
+  padding: 22px;
+  border: 1px solid #ccd7bd;
+  border-radius: 10px;
+  background: #edf1e6;
+  margin: 22px 0;
+}
+.ai-import .section-heading {
+  margin: 0 0 12px;
+}
+.ai-import p,
+.analysis-summary p {
+  font-size: 12px;
+}
+.ai-import input[type="number"] {
+  width: 110px;
+}
+.consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #627457;
+  margin: 18px 0;
+}
+.consent input {
+  margin-top: 4px;
+}
+.concept-details {
+  padding: 14px;
+  background: #f1f4e9;
+  margin-top: 12px;
+  border-radius: 7px;
+}
+.concept-details p,
+.concept-details details {
+  font-size: 11px;
+}
+.concept-details summary,
+.mnemonic summary {
+  cursor: pointer;
+  color: #496442;
+}
+.concept-details blockquote,
+.mnemonic blockquote {
+  margin: 10px 0;
+  padding: 10px;
+  border-left: 2px solid #abbc92;
+  color: #6f7c61;
+  font-size: 11px;
+}
+.setup-steps {
+  padding-left: 20px;
+  color: #718263;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.setup-steps li {
+  padding-bottom: 14px;
+}
+.setup-steps .button {
+  margin-top: 8px;
+  display: flex;
+  width: max-content;
+}
+#ai-status {
+  padding: 16px 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #506c43;
+}
 :root {
   font-family: "DM Sans", Arial, sans-serif;
   color: #253b34;

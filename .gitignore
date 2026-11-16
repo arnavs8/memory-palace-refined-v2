@@ -5,6 +5,8 @@ release/
 original-mvp/
 test-results/
 playwright-report/
+verification/
 *.log
 .env*
 !.env.example
+.presentation-build/

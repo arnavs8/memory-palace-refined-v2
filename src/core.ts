@@ -1,3 +1,4 @@
+import { validLayout, type Layout } from "./layout.ts";
 export type Card = {
   id: string;
   title: string;
@@ -5,6 +6,13 @@ export type Card = {
   source: string;
   page: number;
   anchor: number;
+  question?: string;
+  importance?: "core" | "supporting";
+  rationale?: string;
+  evidence?: string;
+  category?: string;
+  mnemonic?: string;
+  topic?: string;
 };
 export type Attempt = {
   date: string;
@@ -20,6 +28,12 @@ export type Palace = {
   cards: Card[];
   seen: string[];
   attempts: Attempt[];
+  layouts?: Layout[];
+  extraction?: {
+    method: "ai" | "passages";
+    model?: string;
+    objective?: string;
+  };
 };
 export type SourcePage = { text: string; source: string; page: number };
 export const PAGE_SIZE = 16;
@@ -111,6 +125,20 @@ export function validatePalace(value: unknown): Palace {
   const ids = new Set();
   const anchors = new Set();
   for (const c of p.cards) {
+    for (const key of [
+      "question",
+      "rationale",
+      "evidence",
+      "category",
+      "mnemonic",
+      "topic",
+    ] as const) {
+      if (
+        c[key] !== undefined &&
+        (typeof c[key] !== "string" || c[key]!.length > 10000)
+      )
+        throw Error("Invalid concept metadata.");
+    }
     if (
       !c ||
       typeof c.id !== "string" ||
@@ -138,6 +166,13 @@ export function validatePalace(value: unknown): Palace {
     created:
       typeof p.created === "string" ? p.created : new Date().toISOString(),
     cards: p.cards,
+    ...(p.layouts
+      ? { layouts: validateLayouts(p.layouts, p.cards.length) }
+      : {}),
+    extraction:
+      p.extraction?.method === "ai" || p.extraction?.method === "passages"
+        ? p.extraction
+        : undefined,
     seen: Array.isArray(p.seen) ? p.seen.filter((x) => ids.has(x)) : [],
     attempts: Array.isArray(p.attempts)
       ? p.attempts.filter(
@@ -152,4 +187,15 @@ export function validatePalace(value: unknown): Palace {
         )
       : [],
   };
+}
+function validateLayouts(layouts: Layout[], count: number) {
+  if (
+    !Array.isArray(layouts) ||
+    layouts.length !== Math.ceil(count / PAGE_SIZE) ||
+    !layouts.every((l, i) =>
+      validLayout(l, Math.min(PAGE_SIZE, count - i * PAGE_SIZE)),
+    )
+  )
+    throw Error("Invalid saved environment layout.");
+  return layouts;
 }

@@ -95,6 +95,7 @@ test("carnival loads all bundled assets and supports multiple wings", async ({
   await expect(page.locator("#world-loading")).toHaveCount(0, {
     timeout: 90000,
   });
+  await page.locator('[data-stop="0"]').click();
   await page.screenshot({ path: "test-results/carnival.png" });
   expect(missing).toEqual([]);
 });

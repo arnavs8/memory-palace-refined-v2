@@ -1,4 +1,14 @@
-const { app, BrowserWindow, protocol, net, session } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  protocol,
+  net,
+  session,
+  ipcMain,
+  safeStorage,
+  shell,
+} = require("electron");
+const { installAI } = require("./ai.cjs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 protocol.registerSchemesAsPrivileged([
@@ -13,6 +23,7 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 app.whenReady().then(() => {
+  installAI({ ipcMain, app, safeStorage, shell });
   protocol.handle("palace", (request) => {
     const url = new URL(request.url);
     const root = path.resolve(__dirname, "../dist");
@@ -40,6 +51,7 @@ app.whenReady().then(() => {
         nodeIntegration: false,
         contextIsolation: true,
         sandbox: true,
+        preload: path.join(__dirname, "preload.cjs"),
       },
     });
     win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));

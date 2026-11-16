@@ -18,6 +18,7 @@ try {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.locator("#new-palace").waitFor({ timeout: 30000 });
   await page.locator("#new-palace").click();
+  await page.locator("#extraction-mode").selectOption("passages");
   await page.locator("#palace-name").fill("Desktop verification");
   await page
     .locator("#pasted")
@@ -41,10 +42,22 @@ try {
   await page.reload();
   await page.locator(".palace-card").waitFor();
   await page.locator("#new-palace").click();
-  await page.locator("#files").setInputFiles({name:"desktop.pdf",mimeType:"application/pdf",buffer:pdfFixture()});
+  await page
+    .locator("#files")
+    .setInputFiles({
+      name: "desktop.pdf",
+      mimeType: "application/pdf",
+      buffer: pdfFixture(),
+    });
+  await page.locator("#extraction-mode").selectOption("passages");
   await page.locator("#extract").click();
   await page.locator(".review-row").waitFor();
-  if(!(await page.locator('[data-body="0"]').inputValue()).includes("conversion of sunlight"))throw Error("Packaged PDF extraction failed");
+  if (
+    !(await page.locator('[data-body="0"]').inputValue()).includes(
+      "conversion of sunlight",
+    )
+  )
+    throw Error("Packaged PDF extraction failed");
   await page.locator("#nav-library").click();
   await page.locator(".palace-card").waitFor();
   await mkdir("test-results", { recursive: true });

@@ -112,6 +112,76 @@
     "license": "CC0-1.0"
   },
   {
+    "id": "potted_plant_01",
+    "type": "model",
+    "path": "assets/models/potted_plant_01/model.gltf",
+    "source": "https://polyhaven.com/a/potted_plant_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "potted_plant_02",
+    "type": "model",
+    "path": "assets/models/potted_plant_02/model.gltf",
+    "source": "https://polyhaven.com/a/potted_plant_02",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "book_encyclopedia_set_01",
+    "type": "model",
+    "path": "assets/models/book_encyclopedia_set_01/model.gltf",
+    "source": "https://polyhaven.com/a/book_encyclopedia_set_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "chess_set",
+    "type": "model",
+    "path": "assets/models/chess_set/model.gltf",
+    "source": "https://polyhaven.com/a/chess_set",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "mantel_clock_01",
+    "type": "model",
+    "path": "assets/models/mantel_clock_01/model.gltf",
+    "source": "https://polyhaven.com/a/mantel_clock_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "antique_ceramic_vase_01",
+    "type": "model",
+    "path": "assets/models/antique_ceramic_vase_01/model.gltf",
+    "source": "https://polyhaven.com/a/antique_ceramic_vase_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "wooden_bookshelf_worn",
+    "type": "model",
+    "path": "assets/models/wooden_bookshelf_worn/model.gltf",
+    "source": "https://polyhaven.com/a/wooden_bookshelf_worn",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "desk_lamp_arm_01",
+    "type": "model",
+    "path": "assets/models/desk_lamp_arm_01/model.gltf",
+    "source": "https://polyhaven.com/a/desk_lamp_arm_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "ornate_mirror_01",
+    "type": "model",
+    "path": "assets/models/ornate_mirror_01/model.gltf",
+    "source": "https://polyhaven.com/a/ornate_mirror_01",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "vintage_grandfather_clock_01",
+    "type": "model",
+    "path": "assets/models/vintage_grandfather_clock_01/model.gltf",
+    "source": "https://polyhaven.com/a/vintage_grandfather_clock_01",
+    "license": "CC0-1.0"
+  },
+  {
     "id": "herringbone_parquet",
     "type": "texture",
     "source": "https://polyhaven.com/a/herringbone_parquet",
@@ -127,6 +197,12 @@
     "id": "concrete_floor_02",
     "type": "texture",
     "source": "https://polyhaven.com/a/concrete_floor_02",
+    "license": "CC0-1.0"
+  },
+  {
+    "id": "wood_floor_deck",
+    "type": "texture",
+    "source": "https://polyhaven.com/a/wood_floor_deck",
     "license": "CC0-1.0"
   }
 ]

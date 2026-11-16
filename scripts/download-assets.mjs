@@ -36,6 +36,16 @@ const models = [
   "Chandelier_01",
   "Ottoman_01",
   "Shelf_01",
+  "potted_plant_01",
+  "potted_plant_02",
+  "book_encyclopedia_set_01",
+  "chess_set",
+  "mantel_clock_01",
+  "antique_ceramic_vase_01",
+  "wooden_bookshelf_worn",
+  "desk_lamp_arm_01",
+  "ornate_mirror_01",
+  "vintage_grandfather_clock_01",
 ];
 const catalog = [];
 for (const id of models) {
@@ -58,6 +68,7 @@ for (const id of [
   "herringbone_parquet",
   "brick_wall_001",
   "concrete_floor_02",
+  "wood_floor_deck",
 ]) {
   const files = await json(`https://api.polyhaven.com/files/${id}`);
   for (const channel of ["diff", "nor_gl", "rough"]) {

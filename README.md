@@ -6,7 +6,7 @@ A local-first Windows desktop app for turning study material into walkable 3D me
 
 ## Install
 
-Download **Memory Palace Setup 2.0.0.exe** from this repository's Releases to install, or use **Memory Palace 2.0.0.exe** for the portable edition. Windows 10/11 x64 with hardware-accelerated WebGL2 is required. The build is unsigned; Windows may display an unknown-publisher prompt. Internet access is not required after download.
+Download **Memory Palace Setup 2.1.0.exe** from this repository's Releases to install, or use **Memory Palace 2.1.0.exe** for the portable edition. Windows 10/11 x64 with hardware-accelerated WebGL2 is required. The build is unsigned; Windows may display an unknown-publisher prompt. Learning and testing work offline. Cloud concept analysis requires internet and your own free OpenRouter API key.
 
 ## Study flow
 
@@ -21,8 +21,8 @@ Export a `.palace.json` backup from a palace's menu. Restore creates a separate 
 
 ## What ships
 
-- Two navigable environments, 16 locally bundled textured glTF props, PBR surface maps, lighting, shadows, and a configurable rendering resolution.
-- PDF/text import with no hardcoded study document or cloud dependency.
+- Two navigable environments, 26 locally bundled textured glTF props, PBR surface maps, lighting, shadows, and a configurable rendering resolution.
+- PDF/text import with free cloud concept analysis or explicit offline passage import.
 - Editable cards, source references, up to 160 cards across 10 wings.
 - Spatial placement tests, score history, local persistence, export/restore, rename/delete.
 - Electron desktop shell with sandboxing, context isolation, disabled Node integration, restricted navigation, and a local application protocol.
@@ -30,10 +30,11 @@ Export a `.palace.json` backup from a palace's menu. Restore creates a separate 
 
 ## Current boundaries
 
-This is an initial desktop release, not a claim of a finished commercial platform. Extraction is deterministic passage grouping, **not semantic AI summarization or exam-relevance ranking**. Review the cards before studying. Image-only scans need OCR first; diagrams and complex tables are not interpreted. Limits: 20 files per import, 50 MB each, 500 pages per PDF, 160 retained cards per palace. Oversized card sets are shown for review rather than silently truncated.
+This release adds source-grounded cloud AI and detailed procedural room layouts. See [Free AI setup](docs/AI-SETUP.md) for key instructions, free-model availability and quotas, and [v2.1 changes](docs/V2.1-CHANGES.md) for environment details and verification boundaries.
 
-The environment collection currently contains two custom-built scenes. Detailed CC0 props improve on the MVP, but this is not a photorealistic environment marketplace or an arbitrary 3D asset importer. Wings reuse the environment layout; recall tests operate on the current wing. There is no cloud sync, account system, paid asset store, code signing, auto-update, or Mac/Linux distribution yet.
+AI proposes study concepts and practice questions; it cannot predict an examiner's questions or guarantee correctness. Source quotes are verified but explanations still need review. Scanned images, diagrams and complex tables need OCR/transcription. The free API requires the user's own key; authenticated model quality was not evaluated without one. Manual passage import remains an explicitly selected offline alternative.
 
+New palaces use four detailed zones with seeded placements; old palaces retain their learned locations. There are still two custom environments, not a large photorealistic environment marketplace. The desktop renderer remains Three.js/Electron. There is no cloud sync, code signing or automatic updater yet.
 ## Develop
 
 Use Node.js 24 LTS with npm and Git.

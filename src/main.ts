@@ -13,6 +13,8 @@ import {
 import { listPalaces, savePalace, deletePalace } from "./storage";
 import { readFiles } from "./import";
 import { PalaceScene, ANCHOR_NAMES, CARNIVAL_NAMES } from "./scene";
+import { ai, type Analysis } from "./ai";
+import { createLayout } from "./layout";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const esc = (s: unknown) =>
   String(s).replace(
@@ -47,6 +49,9 @@ let scene: PalaceScene | undefined;
 let palaces: Palace[] = [];
 let draft: Card[] = [];
 let draftName = "";
+let draftAnalysis: Analysis | undefined;
+let draftObjective = "";
+let screenVersion = 0;
 let chosen: "house" | "carnival" = "house";
 let active: Palace;
 let wing = 0;
@@ -62,8 +67,10 @@ function stopScene() {
   scene = undefined;
 }
 function shell(content: string, nav = "library") {
+  screenVersion++;
+  void window.palaceAI?.cancel();
   stopScene();
-  app.innerHTML = `<aside class="sidebar"><a href="#" id="brand" class="brand"><span class="brand-mark">${icon("landmark")}</span><span>memory<span class="brand-light">palace</span><small>A PLACE FOR EVERYTHING YOU KNOW</small></span></a><div class="workspace-label">YOUR WORKSPACE</div><nav>${button(icon("layout-grid") + " My palaces", "nav-library", `nav-item ${nav === "library" ? "active" : ""}`)}${button(icon("plus") + " Create a palace", "nav-create", `nav-item ${nav === "create" ? "active" : ""}`)}${button(icon("box") + " Environment library", "nav-assets", `nav-item ${nav === "assets" ? "active" : ""}`)}</nav><div class="sidebar-note"><span class="tiny-label">THE METHOD OF LOCI</span><p>Give your knowledge<br>a place to live.</p><span>Familiar places. Stronger memories.</span></div><div class="sidebar-bottom"><div class="local-badge">${icon("shield-check")} Private by design</div><p>Saved on this device · Works offline</p>${button(icon("settings-2") + " Settings & help", "nav-settings", "nav-item")}<div class="profile"><span>A</span><div>Your personal workspace<small>MEMORY PALACE · REFINED V2</small></div></div></div></aside><main class="main">${content}</main>`;
+  app.innerHTML = `<aside class="sidebar"><a href="#" id="brand" class="brand"><span class="brand-mark">${icon("landmark")}</span><span>memory<span class="brand-light">palace</span><small>A PLACE FOR EVERYTHING YOU KNOW</small></span></a><div class="workspace-label">YOUR WORKSPACE</div><nav>${button(icon("layout-grid") + " My palaces", "nav-library", `nav-item ${nav === "library" ? "active" : ""}`)}${button(icon("plus") + " Create a palace", "nav-create", `nav-item ${nav === "create" ? "active" : ""}`)}${button(icon("box") + " Environment library", "nav-assets", `nav-item ${nav === "assets" ? "active" : ""}`)}</nav><div class="sidebar-note"><span class="tiny-label">THE METHOD OF LOCI</span><p>Give your knowledge<br>a place to live.</p><span>Familiar places. Stronger memories.</span></div><div class="sidebar-bottom"><div class="local-badge">${icon("shield-check")} Private by design</div><p>Saved locally · AI uses cloud</p>${button(icon("settings-2") + " Settings & help", "nav-settings", "nav-item")}<div class="profile"><span>A</span><div>Your personal workspace<small>MEMORY PALACE · REFINED V2</small></div></div></div></aside><main class="main">${content}</main>`;
   on("brand", (e) => {
     e.preventDefault();
     void library();
@@ -72,6 +79,13 @@ function shell(content: string, nav = "library") {
   on("nav-create", () => upload());
   on("nav-assets", () => environmentLibrary());
   on("nav-settings", () => settings());
+  document
+    .getElementById("nav-settings")
+    ?.insertAdjacentHTML(
+      "beforebegin",
+      button(icon("sparkles") + " Free AI setup", "nav-ai", "nav-item"),
+    );
+  on("nav-ai", () => void aiSettings());
   refreshIcons();
 }
 async function library() {
@@ -129,12 +143,24 @@ function renderPalaces(items: Palace[]) {
   refreshIcons();
 }
 function upload() {
+  draftAnalysis = undefined;
   draft = [];
   shell(
-    `<header class="topbar"><span>Workspace <b>/</b> Create a palace</span><span>01 / 03</span></header><section class="page narrow"><div class="steps"><span class="current">01 &nbsp; Add material</span><span>02 &nbsp; Review memories</span><span>03 &nbsp; Choose a world</span></div><div class="eyebrow">START WITH SOMETHING WORTH REMEMBERING</div><h1>What are we learning?</h1><p class="intro">Your lecture notes, exam prep, or that subject you’ve always wanted to master.</p><label class="field-label" for="palace-name">Palace name</label><input class="wide-input" id="palace-name" placeholder="e.g. Biology · Semester 2" maxlength="100" value="${esc(draftName)}"><label class="dropzone" id="dropzone"><input type="file" id="files" accept=".pdf,.txt,.md" multiple><span class="upload-icon">${icon("files")}</span><h2>Drop your study material here</h2><p>or <strong>browse files</strong> on your computer</p><small>PDF, TXT, Markdown · Up to 50 MB per file · 20 files</small></label><div class="divider"><span>OR START WITH TEXT</span></div><textarea id="pasted" placeholder="Paste your notes here. Definitions, explanations, dates, and key facts all work well." rows="6"></textarea><div class="privacy-note">${icon("lock-keyhole")} Your files stay on this device. Text is extracted locally; no cloud account needed.</div><div id="import-status" role="status"></div><div class="form-actions">${button("Back to library", "back", "button subtle")}${button("Extract memories " + icon("arrow-right"), "extract", "button primary")}</div><p class="fine-print">Extraction creates source-based passages for you to review, not AI-generated summaries. Scanned images require OCR first. Up to ${MAX_CARDS} memories per palace.</p></section>`,
+    `<header class="topbar"><span>Workspace <b>/</b> Create a palace</span><span>01 / 03</span></header><section class="page narrow"><div class="steps"><span class="current">01 &nbsp; Add material</span><span>02 &nbsp; Review memories</span><span>03 &nbsp; Choose a world</span></div><div class="eyebrow">START WITH SOMETHING WORTH REMEMBERING</div><h1>What are we learning?</h1><p class="intro">Your lecture notes, exam prep, or that subject you’ve always wanted to master.</p><label class="field-label" for="palace-name">Palace name</label><input class="wide-input" id="palace-name" placeholder="e.g. Biology · Semester 2" maxlength="100" value="${esc(draftName)}"><label class="dropzone" id="dropzone"><input type="file" id="files" accept=".pdf,.txt,.md" multiple><span class="upload-icon">${icon("files")}</span><h2>Drop your study material here</h2><p>or <strong>browse files</strong> on your computer</p><small>PDF, TXT, Markdown · Up to 50 MB per file · 20 files</small></label><div class="divider"><span>OR START WITH TEXT</span></div><textarea id="pasted" placeholder="Paste your notes here. Definitions, explanations, dates, and key facts all work well." rows="6"></textarea><div class="privacy-note">${icon("lock-keyhole")} Your saved palaces stay on this device. Text is extracted locally; no cloud account needed.</div><div id="import-status" role="status"></div><div class="form-actions">${button("Back to library", "back", "button subtle")}${button("Extract memories " + icon("arrow-right"), "extract", "button primary")}</div><p class="fine-print">Extraction creates source-based passages for you to review, not AI-generated summaries. Scanned images require OCR first. Up to ${MAX_CARDS} memories per palace.</p></section>`,
     "create",
   );
   let files: File[] = [];
+  document
+    .querySelector("#pasted")!
+    .insertAdjacentHTML(
+      "afterend",
+      `<section class="ai-import"><div class="section-heading"><h2>Understand what matters</h2>${button("Set up free AI", "setup-ai", "button subtle")}</div><label class="field-label" for="extraction-mode">Create memories using</label><select id="extraction-mode"><option value="ai" ${window.palaceAI ? "selected" : ""}>AI concept analysis · free cloud model</option><option value="passages" ${!window.palaceAI ? "selected" : ""}>Manual passage import · no AI</option></select><label class="field-label" for="objective">What are you preparing for?</label><textarea id="objective" rows="2" maxlength="2000" placeholder="e.g. First-year biology exam: explain mechanisms, compare processes, and apply the equations. Add syllabus topics if you have them."></textarea><label class="field-label" for="target-count">Target number of concepts</label><input id="target-count" type="number" min="4" max="80" value="24"><p>AI identifies the main ideas, proposes practice questions, and ranks concepts against your goal. It cannot know what your examiner will ask.</p><label class="consent"><input id="ai-consent" type="checkbox"> Send document text to OpenRouter and the selected model provider for analysis. Their data policies apply.</label><div id="ai-request-count" class="fine-print">Long documents use multiple free-model requests. Quotas and model availability vary.</div></section>`,
+    );
+  document.querySelector(".privacy-note")!.textContent =
+    "Files are read on this device. Cloud analysis sends extracted text only when you select AI and confirm above. Your key is encrypted by the desktop app.";
+  document.querySelector(".fine-print:last-child")!.textContent =
+    "AI results include source evidence for review. Manual import only splits passages. Scanned PDFs and diagrams still need OCR or transcription.";
+  on("setup-ai", () => void aiSettings());
   const input = document.querySelector<HTMLInputElement>("#files")!;
   input.onchange = () => {
     files = Array.from(input.files || []);
@@ -163,6 +189,8 @@ function upload() {
   };
   on("back", () => void library());
   on("extract", async () => {
+    const version = screenVersion;
+    let unsubscribe = () => {};
     const btn = document.querySelector<HTMLButtonElement>("#extract")!;
     const status = document.querySelector("#import-status")!;
     try {
@@ -182,16 +210,62 @@ function upload() {
         ? await readFiles(files, (s) => (status.textContent = s))
         : [];
       if (text) pages.push({ text, source: "Pasted notes", page: 1 });
-      draft = extractCards(pages);
+      const method =
+        document.querySelector<HTMLSelectElement>("#extraction-mode")!.value;
+      draftObjective = document
+        .querySelector<HTMLTextAreaElement>("#objective")!
+        .value.trim();
+      if (method === "ai") {
+        const bridge = ai();
+        const configured = await bridge.status();
+        if (!configured.configured)
+          throw Error("Choose “Set up free AI” to add your API key first.");
+        const consent =
+          document.querySelector<HTMLInputElement>("#ai-consent")!.checked;
+        if (!consent)
+          throw Error(
+            "Confirm the cloud text-sharing checkbox before AI analysis.",
+          );
+        const target = Number(
+          document.querySelector<HTMLInputElement>("#target-count")!.value,
+        );
+        const estimate = await bridge.estimate(pages);
+        document.querySelector("#ai-request-count")!.textContent =
+          `This analysis uses approximately ${estimate.requests} free-model requests. No paid fallback is enabled.`;
+        btn.insertAdjacentHTML(
+          "beforebegin",
+          button("Cancel analysis", "cancel-analysis", "button subtle"),
+        );
+        on("cancel-analysis", () => void bridge.cancel());
+        unsubscribe = bridge.onProgress((message) => {
+          if (version === screenVersion) status.textContent = message;
+        });
+        draftAnalysis = await bridge.analyze({
+          pages,
+          objective: draftObjective,
+          target,
+          consent,
+        });
+        draft = draftAnalysis.cards;
+      } else {
+        draftAnalysis = undefined;
+        draft = extractCards(pages);
+      }
+      if (version !== screenVersion) return;
       if (!draft.length)
         throw Error(
           "No study passages found. Add more complete notes or check that the PDF contains selectable text.",
         );
       review();
     } catch (e) {
+      if (version !== screenVersion) return;
       fail(e);
       btn.disabled = false;
       status.textContent = "Import stopped. Your files have not been saved.";
+    } finally {
+      unsubscribe();
+      document.getElementById("cancel-analysis")?.remove();
+      btn.disabled = false;
     }
   });
 }
@@ -201,6 +275,16 @@ function review() {
     "create",
   );
   renderReview();
+  if (draftAnalysis) {
+    document
+      .querySelector(".notice")!
+      .insertAdjacentHTML(
+        "afterend",
+        `<div class="analysis-summary"><strong>${draft.length} concepts selected for your goal</strong><p>${esc(draftAnalysis.coverage)}</p><small>${esc(draftAnalysis.model)} · ${draftAnalysis.requests} requests · ${draftAnalysis.rejected} unsupported or invalid candidates excluded. Evidence quotes checked against the document; review the explanations yourself.</small></div>`,
+      );
+    document.querySelector(".page-title p")!.innerHTML =
+      `<strong id="draft-count">${draft.length}</strong> concepts selected. Review the explanations, practice questions, and source evidence.`;
+  }
   on("add-card", () => {
     draft.push({
       id: crypto.randomUUID(),
@@ -255,6 +339,22 @@ function renderReview() {
       }),
   );
   refreshIcons();
+  list.querySelectorAll<HTMLElement>(".review-row").forEach((row, i) => {
+    const c = draft[i];
+    if (!c.question) return;
+    row
+      .querySelector("small")!
+      .insertAdjacentHTML(
+        "afterend",
+        `<div class="concept-details"><span class="pill">${esc(c.importance || "supporting")} · ${esc(c.topic || "Concept")}</span><label class="field-label">Practice question<textarea data-question="${i}" rows="2" maxlength="600">${esc(c.question)}</textarea></label><p><strong>Why it matters:</strong> ${esc(c.rationale || "")}</p><details><summary>Check source evidence</summary><blockquote>${esc(c.evidence || "")}</blockquote></details></div>`,
+      );
+  });
+  list
+    .querySelectorAll<HTMLTextAreaElement>("[data-question]")
+    .forEach(
+      (el) =>
+        (el.oninput = () => (draft[+el.dataset.question!].question = el.value)),
+    );
 }
 function environmentCards() {
   return `<div class="environment-grid">${(["house", "carnival"] as const).map((env) => `<button class="environment-card ${chosen === env ? "selected" : ""}" data-env="${env}"><div class="environment-image"><img src="${import.meta.env.BASE_URL}previews/${env}.jpg" alt="${env === "house" ? "Furnished sunlit house" : "Illuminated carnival"}"><span class="selection-check">${icon("check")}</span><span class="pill">${env === "house" ? "CALM & FAMILIAR" : "VIVID & PLAYFUL"}</span></div><div class="environment-copy"><h2>${env === "house" ? "The Sunlit House" : "The Twilight Carnival"}</h2><p>${env === "house" ? "Warm timber, a quiet reading corner, and sun-washed rooms. A familiar home for complex ideas." : "Glowing lanterns, colorful stalls, and a turning Ferris wheel. Make every memory an occasion."}</p><div class="environment-meta"><span>${icon("map-pin")} 16 distinct locations</span><span>${icon("box")} PBR assets</span></div></div></button>`).join("")}</div>`;
@@ -278,7 +378,21 @@ function chooseEnvironment() {
         cards: draft.map((c, i) => ({ ...c, anchor: i })),
         seen: [],
         attempts: [],
+        extraction: {
+          method: draftAnalysis ? "ai" : "passages",
+          model: draftAnalysis?.model,
+          objective: draftObjective,
+        },
       };
+      active.layouts = Array.from(
+        { length: Math.ceil(active.cards.length / PAGE_SIZE) },
+        (_, i) =>
+          createLayout(
+            active.id + ":" + i,
+            active.cards.slice(i * PAGE_SIZE, (i + 1) * PAGE_SIZE),
+            chosen,
+          ),
+      );
       await savePalace(active);
       wing = 0;
       mode = "learn";
@@ -302,7 +416,7 @@ function bindEnvironments() {
 }
 function environmentLibrary() {
   shell(
-    `<header class="topbar"><span>Workspace <b>/</b> Environment library</span><span>Bundled for offline learning</span></header><section class="page"><div class="eyebrow">WORLDS TO MAKE YOUR OWN</div><h1>A place for every kind of mind.</h1><p class="intro">Two curated environments, sixteen detailed props, and a growing collection of memorable locations.</p>${environmentCards()}<div class="notice">${icon("box")} Both worlds ship with the app. Models and surface textures: Poly Haven, CC0. Environment architecture and carnival structures are built for Memory Palace.</div><div class="form-actions">${button("Create a palace " + icon("arrow-right"), "from-assets", "button primary")}</div></section>`,
+    `<header class="topbar"><span>Workspace <b>/</b> Environment library</span><span>Bundled for offline learning</span></header><section class="page"><div class="eyebrow">WORLDS TO MAKE YOUR OWN</div><h1>A place for every kind of mind.</h1><p class="intro">Two curated environments, twenty-six detailed props, and a growing collection of memorable locations.</p>${environmentCards()}<div class="notice">${icon("box")} Both worlds ship with the app. Models and surface textures: Poly Haven, CC0. Environment architecture and carnival structures are built for Memory Palace.</div><div class="form-actions">${button("Create a palace " + icon("arrow-right"), "from-assets", "button primary")}</div></section>`,
     "assets",
   );
   bindEnvironments();
@@ -312,6 +426,8 @@ function wingCards() {
   return active.cards.filter((c) => Math.floor(c.anchor / PAGE_SIZE) === wing);
 }
 function nameAt(index: number) {
+  const landmark = active.layouts?.[wing]?.landmarks[index];
+  if (landmark) return `${landmark.name} · ${landmark.zone}`;
   return (active.environment === "house" ? ANCHOR_NAMES : CARNIVAL_NAMES)[
     index
   ];
@@ -343,6 +459,7 @@ function enter() {
   refreshIcons();
   try {
     scene = new PalaceScene(document.querySelector("#world")!, {
+      layout: active.layouts?.[wing],
       environment: active.environment,
       count: cards.length,
       quality,
@@ -393,7 +510,7 @@ function renderJourney() {
     );
   } else {
     const current = queue[question];
-    el.innerHTML = `<span class="tiny-label">SPATIAL RECALL · WING ${wing + 1}</span><div class="test-count">${question + 1}<span> / ${queue.length}</span></div><div class="progress-line"><span style="width:${(question / queue.length) * 100}%"></span></div><h2>Where did this memory live?</h2><div class="question-card"><span>FIND THE LOCATION OF</span><h3>${esc(current?.title || "Complete")}</h3></div><p>Walk to the object where you learned this concept. Press <kbd>E</kbd> to place it.</p><div class="notice compact">Study explanations, route numbers, and guided navigation are hidden until you finish.</div>${button("Skip this memory", "skip", "button glass full")}`;
+    el.innerHTML = `<span class="tiny-label">SPATIAL RECALL · WING ${wing + 1}</span><div class="test-count">${question + 1}<span> / ${queue.length}</span></div><div class="progress-line"><span style="width:${(question / queue.length) * 100}%"></span></div><h2>Where did this memory live?</h2><div class="question-card"><span>FIND THE LOCATION OF</span><h3>${esc(current?.question || current?.title || "Complete")}</h3></div><p>Walk to the object where you learned this concept. Press <kbd>E</kbd> to place it.</p><div class="notice compact">Study explanations, route numbers, and guided navigation are hidden until you finish.</div>${button("Skip this memory", "skip", "button glass full")}`;
     on("skip", () => answer(-1));
   }
   refreshIcons();
@@ -448,6 +565,10 @@ function showCard(card: Card) {
     showCard(next);
   });
   refreshIcons();
+  if (card.question) {
+    document.querySelector(".mnemonic")!.innerHTML =
+      `<strong>Memory association</strong><p>${esc(card.mnemonic || "Imagine this concept interacting with its landmark.")}</p><strong>Practice question</strong><p>${esc(card.question)}</p><details><summary>Source evidence</summary><blockquote>${esc(card.evidence || "")}</blockquote></details>`;
+  }
 }
 function startTest() {
   mode = "test";
@@ -629,6 +750,65 @@ function worldSettings() {
     mode = "learn";
     enter();
   });
+}
+async function aiSettings() {
+  modal(
+    `<span class="eyebrow">FREE CLOUD AI · OPENROUTER</span><h2>Find the concepts worth learning.</h2><ol class="setup-steps"><li>Create or sign in to an OpenRouter account.${button("Open API key page " + icon("external-link"), "open-keys", "button")}</li><li>Choose <strong>Create key</strong>, name it “Memory Palace”, and copy the key. Keep it private. You do not need to choose a paid model in this app.</li><li>Paste it below, select a free model, then save and check the connection.</li></ol><label class="field-label" for="api-key">OpenRouter API key</label><input class="wide-input" type="password" id="api-key" autocomplete="off" spellcheck="false" placeholder="Paste your key here (never in chat)"><label class="field-label" for="ai-model">Free model</label><select id="ai-model"><option value="openrouter/free">Free Models Router · chooses an available free model</option></select><p class="fine-print">The list is checked live and contains only zero-price models. Qwen appears when a free Qwen endpoint is available. The free router can use other model families. No paid model fallback is configured.</p><div class="modal-actions">${button("Save & check connection", "save-ai", "button primary")}${button("Remove saved key", "remove-ai", "button subtle")}</div><div id="ai-status" role="status">Loading model availability…</div><div class="notice">Free access has daily quotas and shared capacity; it is not unlimited. Analysing a long document uses several requests. Your text is sent to OpenRouter and the chosen provider, whose privacy policies apply.</div><div class="modal-actions">${button("Usage limits", "open-limits", "text-button")}${button("Privacy settings", "open-privacy", "text-button")}</div><p class="fine-print">The desktop app encrypts your key with the operating system. It is excluded from palace backups and is never included in this repository.</p>`,
+  );
+  const status = document.querySelector<HTMLElement>("#ai-status")!;
+  const keyInput = document.querySelector<HTMLInputElement>("#api-key")!;
+  const modelSelect = document.querySelector<HTMLSelectElement>("#ai-model")!;
+  for (const name of ["keys", "limits", "privacy"])
+    on("open-" + name, () => {
+      try {
+        void ai().open(name).catch(fail);
+      } catch (e) {
+        fail(e);
+      }
+    });
+  on("save-ai", async () => {
+    const btn = document.querySelector<HTMLButtonElement>("#save-ai")!;
+    btn.disabled = true;
+    try {
+      await ai().save({ key: keyInput.value.trim(), model: modelSelect.value });
+      keyInput.value = "";
+      const result = await ai().test();
+      status.textContent = `Connected. Key encrypted on this device.${result.remaining !== null ? ` Free requests remaining today: ${result.remaining}.` : ""}`;
+    } catch (e) {
+      status.textContent = e instanceof Error ? e.message : String(e);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  on("remove-ai", async () => {
+    try {
+      await ai().remove();
+      keyInput.value = "";
+      status.textContent = "Saved key removed from this device.";
+    } catch (e) {
+      fail(e);
+    }
+  });
+  try {
+    const bridge = ai();
+    const [config, models] = await Promise.all([
+      bridge.status(),
+      bridge.models(),
+    ]);
+    modelSelect.innerHTML = models
+      .map(
+        (m) =>
+          `<option value="${esc(m.id)}" ${m.id === config.model ? "selected" : ""}>${esc(m.name)}</option>`,
+      )
+      .join("");
+    if (!models.some((m) => m.id === config.model))
+      modelSelect.value = "openrouter/free";
+    status.textContent = config.configured
+      ? "A key is saved. Leave the field blank to keep it."
+      : "No key saved. Follow the three steps above.";
+  } catch (e) {
+    status.textContent = e instanceof Error ? e.message : String(e);
+  }
 }
 window.addEventListener("unhandledrejection", (event) => {
   fail(event.reason);
