@@ -10,10 +10,10 @@ Download **Memory Palace Setup 2.1.0.exe** from this repository's Releases to in
 ## Study flow
 
 1. Create a palace and upload your own PDFs, TXT, or Markdown files, or paste notes.
-2. Review the extracted passages. Edit titles and explanations, remove unhelpful passages, and add your own cards. Each extracted card retains its filename and page number.
+2. Choose AI concept analysis, describe your exam goal and review the proposed concepts, practice questions and source evidence. Edit or remove cards before building. Offline passage import is also available.
 3. Choose **The Sunlit House** or **The Twilight Carnival**. Your cards are assigned stable locations, with up to 16 memories in each wing.
 4. Explore with WASD/arrow keys; drag to look, or capture the mouse. Escape releases the mouse. Press E near an object to read its memory. The route sidebar also supports guided visits.
-5. Switch to **Test recall**. Explanations, numbered markers, and guided navigation are hidden. A shuffled concept title prompts you to walk to its original location and place it with E. Skip if you cannot recall it.
+5. Switch to **Test recall**. Explanations, numbered markers, and guided navigation are hidden. A shuffled practice question or concept title prompts you to walk to its original location and place it with E. Skip if you cannot recall it.
 6. Review your score and mistaken locations, return to Learn mode, and revise. Completed attempts and explored cards are saved automatically.
 
 Export a `.palace.json` backup from a palace's menu. Restore creates a separate copy, preserving the original. Data lives in IndexedDB within the desktop app profile; uninstalling or clearing that profile can remove it.
