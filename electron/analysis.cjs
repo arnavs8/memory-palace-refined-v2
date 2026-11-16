@@ -139,9 +139,36 @@ async function analyze(
   for (let i = 0; i < chunks.length; i++) {
     signal?.throwIfAborted();
     progress(`Understanding chapter material ${i + 1}/${chunks.length}…`);
-    const prompt = `Study objective: ${objective || "Understand the central concepts and prepare for a general exam."}\nFind up to ${Math.min(16, Math.max(6, Math.ceil(target / chunks.length) * 2))} high-value distinct concepts from these source excerpts. Each card must teach ONE meaningful idea. Consolidate related sentences instead of copying a paragraph. Include an exact supporting quote (20–600 characters) from the cited page. Use pageIndex exactly as provided. importance is core or supporting. category is study, process, general, history, comparison, time, energy, sound, observation, or structure. mnemonic is a short vivid spatial association, clearly imaginative, not an academic fact.\nJSON shape: {"cards":[{"title":"Concept name","body":"Concise, complete explanation and key conditions","question":"A source-grounded practice question","rationale":"Why this idea matters for understanding or assessment","topic":"Chapter or topic","importance":"core","category":"process","mnemonic":"Imagine…","pageIndex":0,"evidence":"Exact source quotation"}]}\nSOURCE EXCERPTS:\n${JSON.stringify(chunks[i])}`;
+    // Bind citations to actual source spans. Asking models to reproduce damaged
+    // PDF text verbatim rejects useful concepts when they repair OCR or spacing.
+    const excerpts = chunks[i].flatMap((chunk, index) => {
+      const spans = [];
+      for (let offset = 0; offset < chunk.text.length; offset += 700) {
+        const text = chunk.text.slice(offset, offset + 900);
+        if (text.trim().length >= 20)
+          spans.push({
+            evidenceId: `${i}:${index}:${offset}`,
+            pageIndex: chunk.pageIndex,
+            text,
+          });
+      }
+      return spans;
+    });
+    const prompt = `Study objective: ${objective || "Understand the central concepts and prepare for a general exam."}\nFind up to ${Math.min(16, Math.max(6, Math.ceil(target / chunks.length) * 2))} high-value distinct concepts from these source excerpts. Each card must teach ONE meaningful idea. Consolidate related sentences instead of copying a paragraph. Cite the evidenceId of the excerpt that best supports each concept. Copy that ID exactly; do not invent IDs or quote rewritten text. Excerpts may overlap or contain PDF extraction errors. Ignore repeated content and do not invent missing facts. importance is core or supporting. category is study, process, general, history, comparison, time, energy, sound, observation, or structure. mnemonic is a short vivid spatial association, clearly imaginative, not an academic fact.\nJSON shape: {"cards":[{"title":"Concept name","body":"Concise, complete explanation and key conditions","question":"A source-grounded practice question","rationale":"Why this idea matters for understanding or assessment","topic":"Chapter or topic","importance":"core","category":"process","mnemonic":"Imagine…","evidenceId":"exact supplied ID"}]}\nSOURCE EXCERPTS:\n${JSON.stringify(excerpts)}`;
+    const proposed = parseJSON(await complete(SYSTEM, prompt, signal));
+    if (Array.isArray(proposed?.cards)) {
+      proposed.cards = proposed.cards.map((card) => {
+        if (!card || card.evidenceId === undefined) return card;
+        const source = excerpts.find((s) => s.evidenceId === card.evidenceId);
+        return {
+          ...card,
+          pageIndex: source?.pageIndex,
+          evidence: source?.text,
+        };
+      });
+    }
     const result = validateCandidates(
-      parseJSON(await complete(SYSTEM, prompt, signal)),
+      proposed,
       pages,
       new Set(chunks[i].map((p) => p.pageIndex)),
     );

@@ -1,6 +1,7 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { analyze, batches } = require("./analysis.cjs");
+const { createCompletion } = require("./completion.cjs");
 const BASE = "https://openrouter.ai/api/v1";
 const LINKS = {
   keys: "https://openrouter.ai/settings/keys",
@@ -24,7 +25,14 @@ async function getModels(fetcher = fetch) {
   return data.data
     .filter(isFree)
     .filter((m) => m.context_length >= 64000)
-    .map((m) => ({ id: m.id, name: m.name, context: m.context_length }))
+    .map((m) => ({
+      id: m.id,
+      name: m.name,
+      context: m.context_length,
+      optionalReasoning:
+        m.supported_parameters?.includes("reasoning") &&
+        !m.reasoning?.mandatory,
+    }))
     .sort(
       (a, b) =>
         Number(b.id.includes("qwen")) - Number(a.id.includes("qwen")) ||
@@ -128,7 +136,8 @@ function installAI({ ipcMain, app, safeStorage, shell }) {
       );
     if (jobs.has(e.sender.id)) throw Error("An analysis is already running.");
     const c = await key();
-    if (!(await getModels()).some((m) => m.id === c.model))
+    const models = await getModels();
+    if (!models.some((m) => m.id === c.model))
       throw Error(
         "Your selected model is no longer free or available. Choose another in AI settings.",
       );
@@ -136,68 +145,26 @@ function installAI({ ipcMain, app, safeStorage, shell }) {
     jobs.set(e.sender.id, controller);
     const destroyed = () => controller.abort();
     e.sender.once("destroyed", destroyed);
-    const complete = async (system, prompt, signal) => {
-      const response = await fetch(BASE + "/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${c.key}`,
-          "X-Title": "Memory Palace",
-        },
-        body: JSON.stringify({
-          model: c.model,
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: prompt },
-          ],
-          temperature: 0.2,
-          max_tokens: 6000,
-          provider: { max_price: { prompt: 0, completion: 0 } },
-          response_format: { type: "json_object" },
-        }),
-        signal: AbortSignal.any([signal, AbortSignal.timeout(180000)]),
-      });
-      if (!response.ok) {
-        if (response.status === 429)
-          throw Error(
-            "Free-model quota or capacity reached. Wait and retry, or select another free model. No paid fallback was used.",
-          );
-        if (response.status === 401)
-          throw Error("Your API key was rejected. Update it in AI settings.");
-        if (response.status === 402)
-          throw Error(
-            "OpenRouter blocked the request under your account limits. Check your key/account; no paid fallback was used.",
-          );
-        throw Error(
-          `Free-model request failed (${response.status}). Choose another free model or retry later.`,
-        );
-      }
-      const result = await response.json();
-      if (
-        result.error ||
-        typeof result.choices?.[0]?.message?.content !== "string"
-      )
-        throw Error(
-          "The provider returned no usable answer. Try another free model.",
-        );
-      if (result.choices[0].finish_reason === "length")
-        throw Error(
-          "Model output was cut short. Request fewer memories or choose another free model.",
-        );
-      return result.choices[0].message.content;
-    };
+    const client = createCompletion({
+      key: c.key,
+      model: c.model,
+      models,
+      progress: (message) => {
+        if (!e.sender.isDestroyed()) e.sender.send("ai:progress", message);
+      },
+    });
     try {
       return {
         ...(await analyze(
           pages,
           { objective, target },
-          complete,
+          client.complete,
           (s) => {
             if (!e.sender.isDestroyed()) e.sender.send("ai:progress", s);
           },
           controller.signal,
         )),
-        model: c.model,
+        ...client.stats(),
       };
     } finally {
       jobs.delete(e.sender.id);

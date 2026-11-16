@@ -164,3 +164,35 @@ test("cancellation stops before inference", async () => {
     /aborted/,
   );
 });
+test("source IDs bind evidence to the original PDF text and reject invented IDs", async () => {
+  const damaged = [
+    {
+      source: "scan.pdf",
+      page: 7,
+      text: "Mechanics is the phy ical science which deals with forces on objects.",
+    },
+  ];
+  let calls = 0;
+  const result = await analyze(damaged, { target: 4 }, async (_s, prompt) => {
+    if (++calls === 1) {
+      const excerpt = JSON.parse(prompt.split("SOURCE EXCERPTS:\n")[1])[0];
+      return JSON.stringify({
+        cards: [
+          {
+            ...concept,
+            evidenceId: excerpt.evidenceId,
+            evidence: "rewritten quote",
+            pageIndex: 999,
+          },
+          { ...concept, evidenceId: "invented" },
+        ],
+      });
+    }
+    const id = JSON.parse(prompt.slice(prompt.indexOf("[{")))[0].id;
+    return JSON.stringify({ selectedIds: [id], coverage: "Mechanics" });
+  });
+  assert.equal(result.cards.length, 1);
+  assert.equal(result.cards[0].evidence, damaged[0].text);
+  assert.equal(result.cards[0].page, 7);
+  assert.equal(result.rejected, 1);
+});

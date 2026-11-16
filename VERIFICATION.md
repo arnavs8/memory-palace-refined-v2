@@ -12,3 +12,10 @@ Verified locally on Windows x64, 16 November 2026.
 - Both environment previews were rendered and inspected.
 
 These checks establish functional behavior, not educational efficacy or performance across a broad device matrix. AI output requires learner review. See docs/AI-SETUP.md and README.md for limitations.
+
+## v2.1.1 follow-up — 17 November 2026
+
+- 23 unit and contract checks passed, including provider fallback, account-limit handling, malformed/empty output, cancellation, free-only routing and source-ID binding.
+- Live authenticated analysis of a 19-page PDF completed with 15 concepts in four requests; one candidate was rejected. This verifies this example, not general educational accuracy.
+- Earlier live attempts reproduced upstream HTTP 429 and reasoning-output exhaustion. The fix addresses these independently of key validity.
+- Packaged desktop smoke test passed: PDF import, learning, recall, persistence and sandbox preferences.

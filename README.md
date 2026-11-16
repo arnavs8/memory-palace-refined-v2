@@ -5,7 +5,7 @@ A local-first Windows desktop app for turning study material into walkable 3D me
 
 ## Install
 
-Download **Memory Palace Setup 2.1.0.exe** from this repository's Releases to install, or use **Memory Palace 2.1.0.exe** for the portable edition. Windows 10/11 x64 with hardware-accelerated WebGL2 is required. The build is unsigned; Windows may display an unknown-publisher prompt. Learning and testing work offline. Cloud concept analysis requires internet and your own free OpenRouter API key.
+Download **Memory Palace Setup 2.1.1.exe** from this repository's Releases to install, or use **Memory Palace 2.1.1.exe** for the portable edition. Windows 10/11 x64 with hardware-accelerated WebGL2 is required. The build is unsigned; Windows may display an unknown-publisher prompt. Learning and testing work offline. Cloud concept analysis requires internet and your own free OpenRouter API key.
 
 ## Study flow
 

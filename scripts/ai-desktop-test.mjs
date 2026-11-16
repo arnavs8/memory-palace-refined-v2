@@ -17,7 +17,7 @@ try{
    };
  });
  const page=await desktop.firstWindow();await page.locator('#nav-ai').waitFor();
- await page.locator('#nav-ai').click();await page.locator('#api-key').fill('sk-or-test-not-a-real-key-123456789');await page.locator('#save-ai').click();await page.getByText('Connected. Key encrypted on this device.',{exact:false}).waitFor();
+ await page.locator('#nav-ai').click();await page.locator('#api-key').fill('sk-or-test-not-a-real-key-123456789');await page.locator('#save-ai').click();await page.getByText('Key verified and encrypted on this device.',{exact:false}).waitFor();
  const config=await readFile(path.join(profile,'ai-settings.json'),'utf8');if(config.includes('sk-or-test'))throw Error('Key stored as plaintext');
  await mkdir('verification',{recursive:true});await page.screenshot({path:'verification/ai-setup.png'});
  await page.locator('#modal-close').click();await page.locator('#new-palace').click();await page.locator('#palace-name').fill('AI verification');
