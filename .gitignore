@@ -10,3 +10,15 @@ verification/
 .env*
 !.env.example
 .presentation-build/
+ue5-prototype/Binaries/
+ue5-prototype/Intermediate/
+ue5-prototype/Saved/
+ue5-prototype/DerivedDataCache/
+ue5-prototype/.vs/
+ue5-prototype/Builds/
+ue5-prototype/Content/Imported/
+ue5-prototype/Content/Maps/
+ue5-prototype/Content/Materials/
+ue5-prototype/*.sln
+ue5-prototype/AssetSources/
+ue5-prototype/**/__pycache__/
